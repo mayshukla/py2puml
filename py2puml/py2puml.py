@@ -12,7 +12,14 @@ from py2puml.exportpuml import to_puml_content
 def py2puml(domain_path: str, domain_module: str) -> Iterable[str]:
     domain_items_by_fqn: Dict[str, UmlItem] = {}
     domain_relations: List[UmlRelation] = []
-    for _, name, is_pkg in walk_packages([domain_path], f'{domain_module}.'):
+
+    print(domain_path, domain_module)
+    prefix = ""
+    if domain_module != "":
+        prefix = f'{domain_module}.'
+
+    for _, name, is_pkg in walk_packages([domain_path], prefix):
+        print(name)
         if not is_pkg:
             domain_item_module: ModuleType = import_module(name)
             inspect_module(

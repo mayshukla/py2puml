@@ -11,7 +11,7 @@ def run():
 
     argparser.add_argument('-v', '--version', action='version', version='py2puml 0.5.4')
     argparser.add_argument('path', metavar='path', type=str, help='the path of the domain')
-    argparser.add_argument('module', metavar='module', type=str, help='the module of the domain', default=None)
+    argparser.add_argument('module', metavar='module', type=str, help='the module of the domain', nargs="?", default="")
 
     args = argparser.parse_args()
     print(''.join(py2puml(args.path, args.module)))
