@@ -1,11 +1,12 @@
 
-from typing import Type, List, Dict
+from typing import Type, List, Dict, Tuple
 
 from re import compile
 from dataclasses import dataclass
+from inspect import getmembers, isfunction
 
 from py2puml.domain.umlitem import UmlItem
-from py2puml.domain.umlclass import UmlClass, UmlAttribute
+from py2puml.domain.umlclass import UmlClass, UmlAttribute, UmlMethod, UmlParam
 from py2puml.domain.umlrelation import UmlRelation, RelType
 from py2puml.parsing.parseclassconstructor import parse_class_constructor
 from py2puml.utils import inspect_domain_definition
@@ -37,12 +38,14 @@ def inspect_static_attributes(
     root_module_name: str,
     domain_items_by_fqn: Dict[str, UmlItem],
     domain_relations: List[UmlRelation]
-) -> List[UmlAttribute]:
+) -> Tuple[List[UmlAttribute], List[UmlMethod]]:
     definition_attrs: List[UmlAttribute] = []
+    methods: List[UmlMethod] = []
     uml_class = UmlClass(
         name=class_type.__name__,
         fqn=class_type_fqn,
-        attributes=definition_attrs
+        attributes=definition_attrs,
+        methods=methods
     )
     domain_items_by_fqn[class_type_fqn] = uml_class
     # inspect_domain_definition(class_type)
@@ -81,7 +84,17 @@ def inspect_static_attributes(
             uml_attr = UmlAttribute(attr_name, attr_type, static=True)
             definition_attrs.append(uml_attr)
 
-    return definition_attrs
+    return definition_attrs, methods
+
+def inspect_methods(
+    class_type: Type
+) -> List[UmlMethod]:
+    methods = []
+    for method_name, method_obj in getmembers(class_type, isfunction):
+        # TODO get return type and staticity
+        uml_method = UmlMethod(method_name, None, False, [])
+        methods.append(uml_method)
+    return methods
 
 def inspect_class_type(
     class_type: Type,
@@ -90,10 +103,11 @@ def inspect_class_type(
     domain_items_by_fqn: Dict[str, UmlItem],
     domain_relations: List[UmlRelation]
 ):
-    attributes = inspect_static_attributes(
+    attributes, methods = inspect_static_attributes(
         class_type, class_type_fqn, root_module_name,
         domain_items_by_fqn, domain_relations
     )
+    methods.extend(inspect_methods(class_type))
     instance_attributes, compositions = parse_class_constructor(class_type, class_type_fqn, root_module_name)
     attributes.extend(instance_attributes)
     domain_relations.extend(compositions.values())
