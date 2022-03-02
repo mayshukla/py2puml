@@ -95,12 +95,20 @@ def inspect_static_attributes(
 
     return definition_attrs, methods
 
+def is_inherited_and_not_overridden(class_type: Type, method_name: str):
+    """Returns true if method is inherited from a parent class and not implemented in the child class."""
+    class_methods = set(class_type.__dict__.keys())
+    if not method_name in class_methods:
+        return True
+    return False
+
 def inspect_methods(
     class_type: Type
 ) -> List[UmlMethod]:
     methods = []
-    print(class_type.__dict__)
     for method_name, method_obj in getmembers(class_type, isfunction):
+        if is_inherited_and_not_overridden(class_type, method_name):
+            continue
         method_signature = signature(method_obj)
 
         params = []
