@@ -3,7 +3,7 @@ from typing import Type, List, Dict, Tuple
 
 from re import compile
 from dataclasses import dataclass
-from inspect import getmembers, isfunction, signature, Parameter
+from inspect import getmembers, isfunction, signature, Parameter, Signature
 
 from py2puml.domain.umlitem import UmlItem
 from py2puml.domain.umlclass import UmlClass, UmlAttribute, UmlMethod, UmlParam
@@ -12,6 +12,15 @@ from py2puml.parsing.parseclassconstructor import parse_class_constructor
 from py2puml.utils import inspect_domain_definition
 
 CONCRETE_TYPE_PATTERN = compile("^<(?:class|enum) '([\\.|\\w]+)'>$")
+
+def extract_type_name(raw_type_name: str) -> str:
+    """Converts something like "<class 'str'>" into just "str"
+    """
+    concrete_type_match = CONCRETE_TYPE_PATTERN.search(raw_type_name)
+    if concrete_type_match:
+        return concrete_type_match.group(1)
+    return raw_type_name
+
 
 def get_type_name(type: Type, root_module_name: str):
     if type.__module__.startswith(root_module_name):
@@ -104,17 +113,18 @@ def inspect_methods(
             param_type = param.annotation
             if param_type == Parameter.empty:
                 param_type = None
-            param_type_name = str(param_type)
-            # Convert something like "<class 'str'>" into just "str"
-            concrete_type_match = CONCRETE_TYPE_PATTERN.search(param_type_name)
-            if concrete_type_match:
-                param_type_name = concrete_type_match.group(1)
+            param_type_name = extract_type_name(str(param_type))
 
             params.append(UmlParam(param_name, param_type_name))
 
-        # TODO get return type
-        uml_method = UmlMethod(method_name, None, static, params)
+        return_type = method_signature.return_annotation
+        if return_type == Signature.empty:
+            return_type = None
+        return_type_name = extract_type_name(str(return_type))
+
+        uml_method = UmlMethod(method_name, return_type_name, static, params)
         methods.append(uml_method)
+
     return methods
 
 def inspect_class_type(
