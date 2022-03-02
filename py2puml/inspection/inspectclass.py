@@ -3,7 +3,7 @@ from typing import Type, List, Dict, Tuple
 
 from re import compile
 from dataclasses import dataclass
-from inspect import getmembers, isfunction
+from inspect import getmembers, isfunction, signature
 
 from py2puml.domain.umlitem import UmlItem
 from py2puml.domain.umlclass import UmlClass, UmlAttribute, UmlMethod, UmlParam
@@ -91,8 +91,11 @@ def inspect_methods(
 ) -> List[UmlMethod]:
     methods = []
     for method_name, method_obj in getmembers(class_type, isfunction):
+        # TODO get param types
+        method_signature = signature(method_obj)
+        params = [UmlParam(param, None) for param in method_signature.parameters]
         # TODO get return type and staticity
-        uml_method = UmlMethod(method_name, None, False, [])
+        uml_method = UmlMethod(method_name, None, False, params)
         methods.append(uml_method)
     return methods
 
