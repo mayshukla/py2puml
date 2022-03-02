@@ -107,6 +107,10 @@ def inspect_methods(
 ) -> List[UmlMethod]:
     methods = []
     for method_name, method_obj in getmembers(class_type, isfunction):
+        # Don't include constructors in UML
+        # TODO create an option to include them but change the name from "__init__" to the class name
+        if method_name == "__init__":
+            continue
         if is_inherited_and_not_overridden(class_type, method_name):
             continue
         method_signature = signature(method_obj)
