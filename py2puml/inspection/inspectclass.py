@@ -1,5 +1,5 @@
 
-from typing import Type, List, Dict, Tuple
+from typing import Type, List, Dict, Tuple, NoReturn
 
 from re import compile
 from dataclasses import dataclass
@@ -99,6 +99,7 @@ def inspect_methods(
     class_type: Type
 ) -> List[UmlMethod]:
     methods = []
+    print(class_type.__dict__)
     for method_name, method_obj in getmembers(class_type, isfunction):
         method_signature = signature(method_obj)
 
@@ -118,9 +119,11 @@ def inspect_methods(
             params.append(UmlParam(param_name, param_type_name))
 
         return_type = method_signature.return_annotation
-        if return_type == Signature.empty:
-            return_type = None
-        return_type_name = extract_type_name(str(return_type))
+        return_type_name = None
+        if (return_type != Signature.empty
+            and return_type is not None
+            and return_type is not NoReturn):
+            return_type_name = extract_type_name(str(return_type))
 
         uml_method = UmlMethod(method_name, return_type_name, static, params)
         methods.append(uml_method)

@@ -9,7 +9,8 @@ PUML_FILE_START = '@startuml\n'
 PUML_FILE_END = '@enduml\n'
 PUML_ITEM_START_TPL = '{item_type} {item_fqn} {{\n'
 PUML_ATTR_TPL = '  {attr_name}: {attr_type}{staticity}\n'
-PUML_METHOD_TPL = '  {method_name}({method_params}): {method_return_type}{staticity}\n'
+PUML_METHOD_TPL = '  {method_name}({method_params}){method_return_type}{staticity}\n'
+PUML_METHOD_RETURN_TYPE_TPL = ': {return_type}'
 PUML_PARAM_TPL = '{param_name}: {param_type}'
 PUML_ITEM_END = '}\n'
 PUML_COMPOSITION_TPL = '{source_fqn} {rel_type}-- {target_fqn}\n'
@@ -37,7 +38,7 @@ def to_puml_content(uml_items: List[UmlItem], uml_relations: List[UmlRelation]) 
                 method_params = ", ".join([
                     PUML_PARAM_TPL.format(param_name=uml_param.name, param_type=uml_param.type) for uml_param in uml_method.params
                 ])
-                yield PUML_METHOD_TPL.format(method_name=uml_method.name, method_params=method_params, method_return_type=uml_method.return_type, staticity=FEATURE_STATIC if uml_method.static else FEATURE_INSTANCE)
+                yield PUML_METHOD_TPL.format(method_name=uml_method.name, method_params=method_params, method_return_type=PUML_METHOD_RETURN_TYPE_TPL.format(return_type=uml_method.return_type) if uml_method.return_type is not None else "", staticity=FEATURE_STATIC if uml_method.static else FEATURE_INSTANCE)
             yield PUML_ITEM_END
         else:
             raise TypeError(f'cannot process uml_item of type {uml_item.__class__}')
