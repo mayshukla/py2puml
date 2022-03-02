@@ -91,11 +91,20 @@ def inspect_methods(
 ) -> List[UmlMethod]:
     methods = []
     for method_name, method_obj in getmembers(class_type, isfunction):
-        # TODO get param types
         method_signature = signature(method_obj)
-        params = [UmlParam(param, None) for param in method_signature.parameters]
-        # TODO get return type and staticity
-        uml_method = UmlMethod(method_name, None, False, params)
+
+        params = []
+        static = True
+        for param in method_signature.parameters:
+            # Don't include "self" param in UML
+            if param == "self":
+                static = False
+                continue
+            # TODO get param types
+            params.append(UmlParam(param, None))
+
+        # TODO get return type
+        uml_method = UmlMethod(method_name, None, static, params)
         methods.append(uml_method)
     return methods
 
