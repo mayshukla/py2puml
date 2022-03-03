@@ -1,5 +1,7 @@
 
+from pydoc import classname
 from typing import Type, List, Dict, Tuple, NoReturn
+from typing_extensions import Self
 
 from re import compile
 from dataclasses import dataclass
@@ -90,6 +92,8 @@ def inspect_static_attributes(
                     attr_type = f"{composition_rel}[{', '.join(component_names)}]"
                 else:
                     attr_type = attr_raw_type
+            if attr_class == Self:
+                attr_type = uml_class.name
             uml_attr = UmlAttribute(attr_name, attr_type, static=True)
             definition_attrs.append(uml_attr)
 
@@ -103,7 +107,7 @@ def is_inherited_and_not_overridden(class_type: Type, method_name: str):
     return False
 
 def inspect_methods(
-    class_type: Type
+    class_type: Type,
 ) -> List[UmlMethod]:
     methods = []
     for method_name, method_obj in getmembers(class_type, isfunction):
@@ -136,6 +140,8 @@ def inspect_methods(
             and return_type is not None
             and return_type is not NoReturn):
             return_type_name = extract_type_name(str(return_type))
+        if return_type == Self:
+            return_type_name = class_type.__name__
 
         uml_method = UmlMethod(method_name, return_type_name, static, params)
         methods.append(uml_method)
